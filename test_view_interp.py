@@ -44,7 +44,7 @@ class StereoHumanRender:
                     data_i = pts2render(data_i, bg_color=self.cfg.dataset.bg_color)
 
                 render_novel = self.tensor2np(data['novel_view']['img_pred'])
-                cv2.imwrite(self.cfg.test_out_path + '/%s_novel%s.jpg' % (data_i['name'], str(i).zfill(2)), render_novel)
+                cv2.imwrite(self.cfg.test_out_path + '/%s_novel_%s_%s_%s.jpg' % (data_i['name'], str(view_select[0]).zfill(2), str(view_select[1]).zfill(2), str(i).zfill(2)), render_novel)
 
     def tensor2np(self, img_tensor):
         img_np = img_tensor.permute(0, 2, 3, 1)[0].detach().cpu().numpy()
@@ -70,8 +70,8 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test_data_root', type=str, required=True)
-    parser.add_argument('--ckpt_path', type=str, required=True)
+    parser.add_argument('--test_data_root', type=str, default='D:/gs_data/studio')
+    parser.add_argument('--ckpt_path', type=str, default='GPS-GS_stage2_final.pth')
     parser.add_argument('--novel_view_nums', type=int, default=5)
     arg = parser.parse_args()
 
@@ -90,4 +90,6 @@ if __name__ == '__main__':
     cfg.freeze()
 
     render = StereoHumanRender(cfg, phase='test')
-    render.infer_static(view_select=[0, 1], novel_view_nums=arg.novel_view_nums)
+    for i in range(16):
+        j = (i + 1) % 16
+        render.infer_static(view_select=[i, j], novel_view_nums=arg.novel_view_nums)
