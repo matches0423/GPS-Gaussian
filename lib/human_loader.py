@@ -110,8 +110,8 @@ class StereoHumanDataset(Dataset):
         self.img_hr_path = os.path.join(self.data_root, 'img/%s/%d_hr.jpg')
         self.mask_path = os.path.join(self.data_root, 'mask/%s/%d.png')
         self.depth_path = os.path.join(self.data_root, 'depth/%s/%d.png')
-        self.intr_path = os.path.join(self.data_root, 'parm/%s/%d_intrinsic.npy')
-        self.extr_path = os.path.join(self.data_root, 'parm/%s/%d_extrinsic.npy')
+        self.intr_path = os.path.join(self.data_root, 'parm/%s/%d_intrinsic.txt')
+        self.extr_path = os.path.join(self.data_root, 'parm/%s/%d_extrinsic.txt')
         self.sample_list = sorted(list(os.listdir(os.path.join(self.data_root, 'img'))))
 
         if self.use_processed_data:
@@ -195,7 +195,7 @@ class StereoHumanDataset(Dataset):
         intr_name = self.intr_path % (sample_name, source_id)
         extr_name = self.extr_path % (sample_name, source_id)
 
-        intr, extr = np.load(intr_name), np.load(extr_name)
+        intr, extr = np.loadtxt(intr_name), np.loadtxt(extr_name)
         mask, pts = None, None
         if hr_img:
             img = read_img(image_hr_name)
@@ -321,7 +321,8 @@ class StereoHumanDataset(Dataset):
         for (img_view, mask_view) in [('img0', 'mask0'), ('img1', 'mask1')]:
             img = torch.from_numpy(stereo_data[img_view]).permute(2, 0, 1)
             img = 2 * (img / 255.0) - 1.0
-            mask = torch.from_numpy(stereo_data[mask_view]).permute(2, 0, 1).float()
+            # mask = torch.from_numpy(stereo_data[mask_view]).permute(2, 0, 1).float()
+            mask = torch.from_numpy(stereo_data[mask_view]).unsqueeze(0).expand(3, -1, -1).float()
             mask = mask / 255.0
 
             img = img * mask
